@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Calculator Tool with Permanent History & Search</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            /* 🖼️ Corporate Finance/Insurance Website Background Image */
+            background-image: url('https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=1920&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+
+        /* 🟢 WhatsApp Style Mini Floating Icon Button */
+        .floating-btn {
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+            background-color: #25d366;
+            color: white;
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s;
+        }
+        .floating-btn:hover {
+            transform: scale(1.05);
+        }
+
+        /* 🧮 Side Dashboard Mini Widget Panel (Glass Blur Style) */
+        .calculator-popup {
+            display: none;
+            position: fixed;
+            right: 20px;
+            bottom: 80px;
+            background-color: rgba(255, 255, 255, 0.96);
+            backdrop-filter: blur(10px);
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+            width: 350px;
+            z-index: 9998;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-sizing: border-box;
+            max-height: 85vh;
+            overflow-y: auto;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(10px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* Personalized Header Styling */
+        .popup-header {
+            border-bottom: 1px solid #f2f2f2;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+        }
+        
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .welcome-msg {
+            font-size: 0.8rem;
+            color: #25d366;
+            font-weight: bold;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .popup-header h2 {
+            margin: 2px 0 0 0;
+            font-size: 1.05rem;
+            color: #111b21;
+            font-weight: 700;
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            color: #667781;
+            font-size: 1.1rem;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        /* Compact Mini Table System */
+        .mini-calc-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+        }
+        
+        .mini-calc-table th {
+            background-color: #f0f2f5;
+            color: #54656f;
+            font-size: 0.75rem;
+            padding: 6px 4px;
+            text-transform: uppercase;
+            border: 1px solid #e9edef;
+        }
+
+        .mini-calc-table td {
+            padding: 6px 4px;
+            border: 1px solid #e9edef;
+        }
+
+        .mini-calc-table input {
+            width: 100%;
+            padding: 6px 2px;
+            border: 1px solid #ced1d3;
+            border-radius: 4px;
+            text-align: center;
+            font-size: 0.85rem;
+            box-sizing: border-box;
+        }
+
+        .input-field {
+            background-color: #fff;
+            border: 1px solid #25d366 !important;
+            font-weight: bold;
+            color: #111b21;
+        }
+        
+        .readonly-input {
+            background-color: #f8f9fa;
+            color: #3b4a54;
+            font-weight: bold;
+        }
+
+        /* 📜 History Section Styling */
+        .history-section {
+            border-top: 2px dashed #e9edef;
+            padding-top: 10px;
+            margin-top: 10px;
+        }
+
+        .history-title-bar {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+
+        .history-title-bar h3 {
+            margin: 0;
+            font-size: 0.85rem;
+            color: #54656f;
+            text-transform: uppercase;
+        }
+
+        /* 🔍 Search Input Box Styling */
+        .search-box {
+            width: 100%;
+            padding: 6px 10px;
+            font-size: 0.8rem;
+            border: 1px solid #ced1d3;
+            border-radius: 20px;
+            box-sizing: border-box;
+            outline: none;
+            background-color: #fff;
+        }
+        .search-box:focus {
+            border-color: #25d366;
+        }
+
+        .history-container {
+            max-height: 150px;
+            overflow-y: auto;
+            border: 1px solid #e9edef;
+            border-radius: 6px;
+            background-color: #f8f9fa;
+        }
+
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.75rem;
+            text-align: center;
+        }
+
+        .history-table th {
+            background-color: #eaeaea;
+            color: #667781;
+            padding: 4px;
+            position: sticky;
+            top: 0;
+            border-bottom: 1px solid #ced1d3;
+        }
+
+        .history-table td {
+            padding: 5px 4px;
+            border-bottom: 1px solid #e9edef;
+            color: #111b21;
+        }
+
+        .history-table tr:last-child td {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+
+<button class="floating-btn" onclick="toggleCalculator()" title="Open Calculator">🧮</button>
+
+<div class="calculator-popup" id="calculatorWidget">
+    <div class="popup-header">
+        <div class="header-top">
+            <p class="welcome-msg">Welcome 👋</p>
+            <button class="close-btn" onclick="toggleCalculator()">✕</button>
+        </div>
+        <h2>Ahmed Chandio</h2>
+    </div>
+    
+    <table class="mini-calc-table">
+        <thead>
+            <tr>
+                <th>%PER</th>
+                <th>GROSS</th>
+                <th>VAT</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><input type="number" id="per" class="input-field" value="16"></td>
+                <td><input type="number" id="gross" class="input-field" value="4242"></td>
+                <td><input type="text" id="vat" class="readonly-input" readonly></td>
+            </tr>
+        </tbody>
+        <thead>
+            <tr>
+                <th>PREMIUM</th>
+                <th>COMISSIO</th>
+                <th>NET</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><input type="text" id="premium" class="readonly-input" readonly></td>
+                <td><input type="text" id="commission" class="readonly-input" readonly></td>
+                <td><input type="text" id="net" class="readonly-input" readonly></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="history-section">
+        <div class="history-title-bar">
+            <h3>Calculation History</h3>
+            <input type="text" id="historySearch" class="search-box" placeholder="🔍 Search by NET or Gross amount..." oninput="renderHistory()">
+        </div>
+        <div class="history-container">
+            <table class="history-table">
+                <thead>
+                    <tr>
+                        <th>%</th>
+                        <th>Gross</th>
+                        <th>Premium</th>
+                        <th>Net</th>
+                    </tr>
+                </thead>
+                <tbody id="historyLogBody">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    function toggleCalculator() {
+        const widget = document.getElementById('calculatorWidget');
+        if (widget.style.display === 'block') {
+            widget.style.display = 'none';
+        } else {
+            widget.style.display = 'block';
+            calculate(true); 
+        }
+    }
+
+    const perInput = document.getElementById('per');
+    const grossInput = document.getElementById('gross');
+    const vatInput = document.getElementById('vat');
+    const premiumInput = document.getElementById('premium');
+    const commissionInput = document.getElementById('commission');
+    const netInput = document.getElementById('net');
+    const historyLogBody = document.getElementById('historyLogBody');
+    const searchInput = document.getElementById('historySearch');
+
+    // 💾 Page load hote hi LocalStorage se puraana data nikalna
+    let historyArray = JSON.parse(localStorage.getItem('calcHistoryData')) || [];
+    let debounceTimer;
+
+    // Initial render taake purani history panel khulte hi dikhe
+    renderHistory();
+
+    function calculate(isInitial = false) {
+        const per = parseFloat(perInput.value) || 0;
+        const gross = parseFloat(grossInput.value) || 0;
+
+        const vat = gross * (5 / 105);
+        const premium = gross - vat;
+        const commission = premium * (per / 100);
+        const net = gross - commission; 
+
+        vatInput.value = vat.toFixed(2);
+        premiumInput.value = premium.toFixed(2);
+        commissionInput.value = commission.toFixed(2);
+        netInput.value = Math.round(net); 
+
+        if (isInitial) {
+            addToHistoryLog(per, gross, premium.toFixed(2), Math.round(net));
+        } else {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                addToHistoryLog(per, gross, premium.toFixed(2), Math.round(net));
+            }, 1000); 
+        }
+    }
+
+    function addToHistoryLog(per, gross, premium, net) {
+        if (gross === 0) return;
+
+        if (historyArray.length > 0) {
+            const lastEntry = historyArray[0];
+            if (lastEntry.per === per && lastEntry.gross === gross && lastEntry.net === net) {
+                return;
+            }
+        }
+
+        const newLog = { per, gross, premium, net };
+        historyArray.unshift(newLog); 
+
+        // Max 50 records hamesha ke liye save rahenge
+        if (historyArray.length > 50) {
+            historyArray.pop();
+        }
+
+        // 💾 LocalStorage mein permanently save karna
+        localStorage.setItem('calcHistoryData', JSON.stringify(historyArray));
+
+        renderHistory();
+    }
+
+    // 🔍 History Filter aur Display Logic
+    function renderHistory() {
+        const filterText = searchInput ? searchInput.value.trim() : "";
+        historyLogBody.innerHTML = '';
+
+        historyArray.forEach(item => {
+            // Agar search box mein kuch likha hai toh filter karega (Gross ya Net matches)
+            if (filterText !== "") {
+                const grossStr = item.gross.toString();
+                const netStr = item.net.toString();
+                if (!grossStr.includes(filterText) && !netStr.includes(filterText)) {
+                    return; // Match nahi hua toh skip karega
+                }
+            }
+
+            const row = `<tr>
+                <td>${item.per}%</td>
+                <td>${item.gross}</td>
+                <td>${item.premium}</td>
+                <td><b>${item.net}</b></td>
+            </tr>`;
+            historyLogBody.innerHTML += row;
+        });
+    }
+
+    perInput.addEventListener('input', () => calculate(false));
+    grossInput.addEventListener('input', () => calculate(false));
+</script>
+
+</body>
+</html>
